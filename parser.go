@@ -9,7 +9,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/brunotm/rxn/rule"
+	"github.com/brunotm/rxde/rule"
 )
 
 var (
