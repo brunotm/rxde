@@ -302,7 +302,7 @@ func (r *Rule) parseDuration(s string) (value []byte, err error) {
 		err = errInvalidDstFormat
 	}
 
-	return value, nil
+	return value, err
 }
 
 // parseTime parses a string representation of time from the specified format into a specified format or in a time.Time
