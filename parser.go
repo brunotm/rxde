@@ -1,3 +1,8 @@
+/*
+Package rxde is a golang package for performing data extraction and parsing (and a few transformations supported along the the way) from non-structured textual data into json documents.
+
+It intends to be as fast as possible and minimize allocations, despite using regular expressions to extract the data. Many parts of the code are intentionally inlined for that purpose.
+*/
 package rxde
 
 import (
@@ -18,25 +23,24 @@ var (
 	errNilStartRegex        = errors.New("both StartMatch and Regex are nil")
 )
 
-// Result type
+// Result represents a json document and any errors from parsing and transformation
 type Result struct {
 	Data   []byte
 	Errors []error
 }
 
-// Config type
+// Config for creating a parser
 type Config struct {
-	FindAll     bool          `json:"find_all"`
-	StartMatch  string        `json:"start_match"`
-	StopMatch   string        `json:"stop_match"`
-	SkipMatch   string        `json:"skip_match"`
-	ResumeMatch string        `json:"resume_match"`
-	Regex       string        `json:"regex"`
-	Rules       []rule.Config `json:"rules"`
+	FindAll     bool          `json:"find_all"`     // find all ocurrences of the parser regex
+	StartMatch  string        `json:"start_match"`  // start matching when matched (inclusive current line)
+	StopMatch   string        `json:"stop_match"`   // stop matching when matched (terminates parsing)
+	SkipMatch   string        `json:"skip_match"`   // skip lines when matched, until resume_match
+	ResumeMatch string        `json:"resume_match"` // resume after skiping when matched
+	Regex       string        `json:"regex"`        // regex to use when performing line oriented matching
+	Rules       []rule.Config `json:"rules"`        // rules for parse and extract data
 }
 
-// Parser type
-// A parser has no state and is goroutine safe
+// Parser type. A parser has no state and is safe for concurrent use
 type Parser struct {
 	startMatch  *regexp.Regexp
 	stopMatch   *regexp.Regexp
@@ -47,7 +51,7 @@ type Parser struct {
 	config      Config
 }
 
-// New parser
+// New creates a new parser with the given config
 func New(config Config) (p *Parser, err error) {
 	p = &Parser{}
 	p.config = config
@@ -106,7 +110,7 @@ func New(config Config) (p *Parser, err error) {
 	return p, nil
 }
 
-// Config of this parser
+// Config returns the config usef to create this parser
 func (p *Parser) Config() (c Config) {
 	return p.config
 }
@@ -140,7 +144,7 @@ func (p *Parser) UnmarshalJSON(data []byte) (err error) {
 }
 
 // Processor is a callback to process each result from the parser.
-// Return false to stop the parser
+// Return false to stop parsing.
 type Processor func(r Result) (ok bool)
 
 // Parse parses raw data in its own goroutine returning the parsed results in the results chan

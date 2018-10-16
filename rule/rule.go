@@ -1,3 +1,4 @@
+// Package rule implements rules for data extraction, parsing and transformation.
 package rule
 
 import (
@@ -122,13 +123,13 @@ type Config struct {
 // Rule to parse the given []byte string into the specified JSON serialization for Type.
 // If a Regexp with a match group is specified, will be used to extract a subset of the given data.
 // Units, origin and destination formats can be specified using the From/To parameters.
-// A rule has no state and is goroutine safe
+// A rule has no state and is safe  for concurrent use.
 type Rule struct {
 	regex  *regexp.Regexp
 	config Config
 }
 
-// New rule
+// New creates a new rule with the given config
 func New(config Config) (rule *Rule, err error) {
 	rule = &Rule{}
 	if config.Regex != "" {
@@ -153,17 +154,7 @@ func New(config Config) (rule *Rule, err error) {
 	return rule, err
 }
 
-// MustNew is like New but panics on error
-func MustNew(config Config) (rule *Rule) {
-	var err error
-	rule, err = New(config)
-	if err != nil {
-		panic(err)
-	}
-	return rule
-}
-
-// Config of this rule
+// Config returns the config usef to create this rule
 func (r *Rule) Config() (c Config) {
 	return r.config
 }
@@ -194,7 +185,7 @@ func (r *Rule) UnmarshalJSON(data []byte) (err error) {
 // Parse and transform the given data into the specified JSON serialization for Type.
 func (r *Rule) Parse(b []byte) (value []byte, matched bool, err error) {
 
-	// As we wont mutate the input avoid unecessary allocations
+	// As we wont mutate the input avoid unnecessary allocations
 	s := bytesToString(b)
 
 	// Extract data with the provided regex if defined
