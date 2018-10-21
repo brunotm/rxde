@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"testing"
+
+	"github.com/brunotm/rxde/rule"
 )
 
 var (
@@ -58,6 +60,25 @@ func TestMarshalUnmarshal(t *testing.T) {
 	_, err = p.MarshalJSON()
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestNewRepeatedRuleName(t *testing.T) {
+	_, err := New(Config{
+		StartMatch: "xxx",
+		Rules: []rule.Config{
+			{
+				Name: "rule1",
+				Type: "number",
+			},
+			{
+				Name: "rule1",
+				Type: "number",
+			},
+		},
+	})
+	if err == nil {
+		t.Fatal("accepted repeated rule")
 	}
 }
 

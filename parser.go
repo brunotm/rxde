@@ -19,6 +19,7 @@ import (
 
 var (
 	errEmptyRules           = errors.New("empty rules")
+	errRepeatedRuleName     = errors.New("repeated rule name")
 	errInvalidParsersNumber = errors.New("invalid number of matches and parsers")
 	errNilStartRegex        = errors.New("both StartMatch and Regex are nil")
 )
@@ -95,7 +96,16 @@ func New(config Config) (p *Parser, err error) {
 		return nil, errEmptyRules
 	}
 
+	ruleNames := make(map[string]struct{})
 	for i := range config.Rules {
+
+		// as only flat json documents are supported
+		// check and error if we find a repeated rule name
+		if _, ok := ruleNames[config.Rules[i].Name]; ok {
+			return nil, errRepeatedRuleName
+		}
+		ruleNames[config.Rules[i].Name] = struct{}{}
+
 		r, err := rule.New(config.Rules[i])
 		if err != nil {
 			return nil, err
